@@ -233,7 +233,7 @@ This returns a full Green/Amber/Red assessment for a wide suburban avenue in Hov
 
 ### Web UI
 
-Open http://localhost:5173, log in with `admin@digital-surveyor.local` and the password from `FIRST_SUPERUSER_PASSWORD` in `.env` (default: `admin123456`), navigate to **Assessments**, and type a postcode.
+Open http://localhost:5173, log in with `admin@digital-surveyor.dev` and the password from `FIRST_SUPERUSER_PASSWORD` in `.env` (default: `admin123456`), navigate to **Assessments**, and type a postcode.
 
 ### Demo postcodes
 
@@ -466,7 +466,7 @@ All configuration is via `.env` in the project root. Docker Compose injects thes
 | `PROJECT_NAME` | `"Digital Surveyor"` | Shown in API docs and emails |
 | `ENVIRONMENT` | `local` | `local`, `staging`, or `production`. Controls secret validation strictness |
 | `SECRET_KEY` | `changethis` | JWT signing key. Generate with `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
-| `FIRST_SUPERUSER` | `admin@digital-surveyor.local` | Admin account email |
+| `FIRST_SUPERUSER` | `admin@digital-surveyor.dev` | Admin account email |
 | `FIRST_SUPERUSER_PASSWORD` | `changethis` | Admin account password |
 | `FRONTEND_HOST` | `http://localhost:5173` | Used for CORS and email links |
 | `BACKEND_CORS_ORIGINS` | `http://localhost,http://localhost:5173` | Comma-separated allowed origins |
@@ -610,6 +610,28 @@ docker compose logs db          # Check PostgreSQL is ready
 docker compose logs prestart    # Check migrations ran
 docker compose logs backend     # Check backend started
 ```
+
+### `password authentication failed for user "digital_surveyor"`
+
+PostgreSQL sets the password **only on first volume creation**. If you changed `POSTGRES_PASSWORD` in `.env` after the database was already initialised, the old password is baked into the volume. Fix by removing the volume and starting fresh:
+
+```bash
+docker compose down -v          # -v removes the database volume
+docker compose watch            # Re-creates DB with current .env password
+```
+
+> ⚠️ This deletes all database data. In development that's fine — migrations and seed data will be re-applied automatically.
+
+### `value is not a valid email address` on prestart
+
+Pydantic's email validator (v2.1+) rejects `.local` as a reserved TLD. If your `.env` has `FIRST_SUPERUSER=admin@digital-surveyor.local`, update it:
+
+```bash
+# In .env, change:
+FIRST_SUPERUSER=admin@digital-surveyor.dev
+```
+
+Then restart: `docker compose down && docker compose watch`.
 
 ### `Integrity check failed for tarball` during frontend build
 
