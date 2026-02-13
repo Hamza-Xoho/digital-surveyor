@@ -11,6 +11,7 @@ Requires **Docker** and **Docker Compose**. Backend: **Python 3.10+**, **FastAPI
 - [What it does](#what-it-does)
 - [Installation](#installation)
   - [Quick start with Docker](#quick-start-with-docker-recommended)
+  - [Updating an existing clone](#updating-an-existing-clone)
   - [API keys](#api-keys)
   - [Development install](#development-install)
 - [Quick Start](#quick-start)
@@ -149,6 +150,21 @@ Once running:
 | Swagger docs | http://localhost:8000/docs | Interactive API explorer |
 | Adminer | http://localhost:8080 | Database admin |
 | Mailcatcher | http://localhost:1080 | Captured emails (development) |
+
+### Updating an existing clone
+
+If you've already cloned the repo and need to pull the latest changes:
+
+```bash
+cd digital-surveyor
+git pull origin main
+docker compose build --no-cache    # Rebuild images (required when dependencies change)
+docker compose watch
+```
+
+The `--no-cache` flag ensures Docker picks up changes to `package.json`, `bun.lock`, or `pyproject.toml`. Without it, Docker's layer cache may serve stale dependencies. After one clean rebuild, subsequent `docker compose watch` runs will be fast again.
+
+> **Tip:** If you have local uncommitted changes that conflict with the pull, stash them first: `git stash` → `git pull` → `git stash pop`.
 
 ### API keys
 

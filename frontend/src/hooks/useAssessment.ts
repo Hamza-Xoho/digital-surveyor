@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
+import type { FeatureCollection, Feature } from "geojson"
 
 export interface VehicleCheck {
   name: string
@@ -41,10 +42,10 @@ export interface AssessmentResult {
   width_analysis: WidthAnalysis | null
   gradient_analysis: GradientAnalysis | null
   geojson_overlays: {
-    roads: GeoJSON.FeatureCollection
-    buildings: GeoJSON.FeatureCollection
-    width_measurements: GeoJSON.FeatureCollection
-    gradient_profile: GeoJSON.Feature | null
+    roads: FeatureCollection
+    buildings: FeatureCollection
+    width_measurements: FeatureCollection
+    gradient_profile: Feature | null
   }
 }
 

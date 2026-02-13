@@ -1,8 +1,9 @@
 import { GeoJSON } from "react-leaflet"
 import type { PathOptions } from "leaflet"
+import type { FeatureCollection } from "geojson"
 
 interface Props {
-  data: GeoJSON.FeatureCollection
+  data: FeatureCollection
 }
 
 const buildingStyle: PathOptions = {

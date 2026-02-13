@@ -1,8 +1,9 @@
 import { GeoJSON } from "react-leaflet"
 import type { PathOptions } from "leaflet"
+import type { Feature, FeatureCollection } from "geojson"
 
 interface Props {
-  data: GeoJSON.Feature
+  data: Feature
 }
 
 function getGradientColor(gradientPct: number): string {
@@ -22,7 +23,7 @@ export default function GradientOverlay({ data }: Props) {
   return (
     <GeoJSON
       key={`gradient-${maxGrad}`}
-      data={{ type: "FeatureCollection", features: [data] }}
+      data={{ type: "FeatureCollection", features: [data] } as FeatureCollection}
       style={() => style}
     />
   )

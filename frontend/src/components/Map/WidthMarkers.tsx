@@ -1,8 +1,9 @@
 import { GeoJSON } from "react-leaflet"
-import type { PathOptions } from "leaflet"
+import type { Layer, PathOptions } from "leaflet"
+import type { Feature, FeatureCollection } from "geojson"
 
 interface Props {
-  data: GeoJSON.FeatureCollection
+  data: FeatureCollection
 }
 
 function getWidthColor(width: number): string {
@@ -17,7 +18,7 @@ export default function WidthMarkers({ data }: Props) {
     <GeoJSON
       key={`widths-${data.features.length}`}
       data={data}
-      style={(feature) => {
+      style={(feature: Feature | undefined) => {
         const width = feature?.properties?.width_m || 0
         return {
           color: getWidthColor(width),
@@ -26,7 +27,7 @@ export default function WidthMarkers({ data }: Props) {
           dashArray: "8, 6",
         } as PathOptions
       }}
-      onEachFeature={(feature, layer) => {
+      onEachFeature={(feature: Feature, layer: Layer) => {
         const width = feature.properties?.width_m
         if (width) {
           layer.bindTooltip(`${width}m`, {
