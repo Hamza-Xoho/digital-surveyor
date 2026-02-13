@@ -25,7 +25,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
 const formSchema = z.object({
-  email: z.email(),
+  email: z.email({ message: "Invalid email address" }),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/recover-password")({
   head: () => ({
     meta: [
       {
-        title: "Recover Password - FastAPI Template",
+        title: "Recover Password - Digital Surveyor",
       },
     ],
   }),

@@ -12,7 +12,7 @@ const fillForm = async (page: Page, email: string, password: string) => {
 const verifyInput = async (page: Page, testId: string) => {
   const input = page.getByTestId(testId)
   await expect(input).toBeVisible()
-  await expect(input).toHaveText("")
+  await expect(input).toHaveValue("")
   await expect(input).toBeEditable()
 }
 

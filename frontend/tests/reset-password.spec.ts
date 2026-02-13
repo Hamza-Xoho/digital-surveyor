@@ -17,7 +17,7 @@ test("Input is visible, empty and editable", async ({ page }) => {
   await page.goto("/recover-password")
 
   await expect(page.getByTestId("email-input")).toBeVisible()
-  await expect(page.getByTestId("email-input")).toHaveText("")
+  await expect(page.getByTestId("email-input")).toHaveValue("")
   await expect(page.getByTestId("email-input")).toBeEditable()
 })
 
@@ -47,7 +47,7 @@ test("User can reset password successfully using the link", async ({
   const emailData = await findLastEmail({
     request,
     filter: (e) => e.recipients.includes(`<${email}>`),
-    timeout: 5000,
+    timeout: 15000,
   })
 
   await page.goto(
@@ -92,17 +92,37 @@ test("Weak new password validation", async ({ page, request }) => {
   const password = randomPassword()
   const weakPassword = "123"
 
-  // Sign up a new user
-  await signUpNewUser(page, fullName, email, password)
+  // Sign up a new user via API to ensure user exists before recovery
+  await page.goto("/signup")
+  await page.getByTestId("full-name-input").fill(fullName)
+  await page.getByTestId("email-input").fill(email)
+  await page.getByTestId("password-input").fill(password)
+  await page.getByTestId("confirm-password-input").fill(password)
+
+  // Wait for the signup API call to complete before proceeding
+  await Promise.all([
+    page.waitForResponse(
+      (resp) => resp.url().includes("/users/signup") && resp.status() === 200,
+    ),
+    page.getByRole("button", { name: "Sign Up" }).click(),
+  ])
 
   await page.goto("/recover-password")
   await page.getByTestId("email-input").fill(email)
-  await page.getByRole("button", { name: "Continue" }).click()
+
+  // Wait for the recovery API call to complete
+  await Promise.all([
+    page.waitForResponse(
+      (resp) =>
+        resp.url().includes("/password-recovery/") && resp.status() === 200,
+    ),
+    page.getByRole("button", { name: "Continue" }).click(),
+  ])
 
   const emailData = await findLastEmail({
     request,
     filter: (e) => e.recipients.includes(`<${email}>`),
-    timeout: 5000,
+    timeout: 15000,
   })
 
   await page.goto(

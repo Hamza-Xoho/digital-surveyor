@@ -7,6 +7,8 @@ dist/
 .pytest_cache/
 .coverage
 htmlcov/
+.venv/
+*.egg
 
 # Environment
 .env
@@ -24,12 +26,30 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+frontend/test-results/
+frontend/blob-report/
+frontend/playwright-report/
+frontend/playwright/.cache/
 
 # IDE
 .vscode/*
 !.vscode/extensions.json
 .idea/
+*.swp
+*.swo
+*~
 
 # LiDAR data (large files)
 lidar-data/*.tif
 lidar-data/*.tiff
+
+# Claude Code / MCP tooling
+.claude/
+.mcp.json
+.playwright-mcp/
+
+# Docker
+*.log
+
+# Backend coverage artifacts
+backend/htmlcov/

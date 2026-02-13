@@ -1,29 +1,24 @@
 # Security Policy
 
-Security is very important for this project and its community. 🔒
+## Supported Versions
 
-Learn more about it below. 👇
-
-## Versions
-
-The latest version or release is supported.
-
-You are encouraged to write tests for your application and update your versions frequently after ensuring that your tests are passing. This way you will benefit from the latest features, bug fixes, and **security fixes**.
+Only the latest version on the `main` branch is actively maintained.
 
 ## Reporting a Vulnerability
 
-If you think you found a vulnerability, and even if you are not sure about it, please report it right away by sending an email to: security@tiangolo.com. Please try to be as explicit as possible, describing all the steps and example code to reproduce the security issue.
+If you discover a security vulnerability, please report it responsibly by opening a private GitHub Issue or contacting the maintainer directly. Do not disclose vulnerabilities publicly until a fix is available.
 
-I (the author, [@tiangolo](https://twitter.com/tiangolo)) will review it thoroughly and get back to you.
+Please include:
 
-## Public Discussions
+- A description of the vulnerability.
+- Steps to reproduce it.
+- Any potential impact assessment.
 
-Please restrain from publicly discussing a potential security vulnerability. 🙊
+We will acknowledge receipt within 48 hours and aim to provide a fix or mitigation as quickly as possible.
 
-It's better to discuss privately and try to find a solution first, to limit the potential impact as much as possible.
+## Security Considerations
 
----
-
-Thanks for your help!
-
-The community and I thank you for that. 🙇
+- **API keys**: Never commit `.env` files or API keys. The `.gitignore` excludes `.env` by default.
+- **JWT secrets**: Generate a strong `SECRET_KEY` for production. The default `changethis` value is rejected in production mode.
+- **Database credentials**: Change all default passwords before deploying.
+- **CORS**: Configure `BACKEND_CORS_ORIGINS` to only allow your frontend domain in production.

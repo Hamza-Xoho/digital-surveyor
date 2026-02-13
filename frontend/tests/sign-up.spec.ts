@@ -20,7 +20,7 @@ const fillForm = async (
 const verifyInput = async (page: Page, testId: string) => {
   const input = page.getByTestId(testId)
   await expect(input).toBeVisible()
-  await expect(input).toHaveText("")
+  await expect(input).toHaveValue("")
   await expect(input).toBeEditable()
 }
 
@@ -80,14 +80,17 @@ test("Sign up with existing email", async ({ page }) => {
   await fillForm(page, fullName, email, password, password)
   await page.getByRole("button", { name: "Sign Up" }).click()
 
+  // Wait for first signup to complete (redirects to login)
+  await page.waitForURL("/login")
+
   await page.goto("/signup")
 
   await fillForm(page, fullName, email, password, password)
   await page.getByRole("button", { name: "Sign Up" }).click()
 
-  await page
-    .getByText("The user with this email already exists in the system")
-    .click()
+  await expect(
+    page.getByText("The user with this email already exists in the system"),
+  ).toBeVisible({ timeout: 10000 })
 })
 
 test("Sign up with weak password", async ({ page }) => {

@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import type { FeatureCollection, Feature } from "geojson"
+import { OpenAPI } from "@/client/core/OpenAPI"
 
 export interface VehicleCheck {
   name: string
@@ -51,7 +52,7 @@ export interface AssessmentResult {
 
 async function runQuickAssessment(postcode: string): Promise<AssessmentResult> {
   const res = await fetch(
-    `/api/v1/assessments/quick?postcode=${encodeURIComponent(postcode)}`,
+    `${OpenAPI.BASE}/api/v1/assessments/quick?postcode=${encodeURIComponent(postcode)}`,
     { method: "POST" }
   )
   if (!res.ok) {
@@ -71,7 +72,7 @@ export function useAssessmentHistory() {
   return useQuery({
     queryKey: ["assessments"],
     queryFn: async () => {
-      const res = await fetch("/api/v1/assessments/")
+      const res = await fetch(`${OpenAPI.BASE}/api/v1/assessments/`)
       return res.json()
     },
   })

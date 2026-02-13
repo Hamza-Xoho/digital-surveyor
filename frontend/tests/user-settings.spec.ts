@@ -4,7 +4,8 @@ import { createUser } from "./utils/privateApi.ts"
 import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser, logOutUser } from "./utils/user"
 
-const tabs = ["My profile", "Password", "Danger zone"]
+// Superuser sees: My profile, Password, API Keys (no Danger zone)
+const superuserTabs = ["My profile", "Password", "API Keys"]
 
 test("My profile tab is active by default", async ({ page }) => {
   await page.goto("/settings")
@@ -14,11 +15,35 @@ test("My profile tab is active by default", async ({ page }) => {
   )
 })
 
-test("All tabs are visible", async ({ page }) => {
+test("Superuser sees correct tabs", async ({ page }) => {
   await page.goto("/settings")
-  for (const tab of tabs) {
+  for (const tab of superuserTabs) {
     await expect(page.getByRole("tab", { name: tab })).toBeVisible()
   }
+  // Superuser should NOT see Danger zone
+  await expect(
+    page.getByRole("tab", { name: "Danger zone" }),
+  ).not.toBeVisible()
+})
+
+test.describe("Non-superuser tabs", () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+
+  test("Regular user sees correct tabs", async ({ page }) => {
+    const email = randomEmail()
+    const password = randomPassword()
+    await createUser({ email, password })
+    await logInUser(page, email, password)
+    await page.goto("/settings")
+
+    await expect(page.getByRole("tab", { name: "My profile" })).toBeVisible()
+    await expect(page.getByRole("tab", { name: "Password" })).toBeVisible()
+    await expect(page.getByRole("tab", { name: "Danger zone" })).toBeVisible()
+    // Regular user should NOT see API Keys tab
+    await expect(
+      page.getByRole("tab", { name: "API Keys" }),
+    ).not.toBeVisible()
+  })
 })
 
 test.describe("Edit user profile", () => {
@@ -199,6 +224,39 @@ test.describe("Change password validation", () => {
     await expect(
       page.getByText("New password cannot be the same as the current one"),
     ).toBeVisible()
+  })
+})
+
+test.describe("API Keys tab (superuser)", () => {
+  test("API Keys tab shows wizard content", async ({ page }) => {
+    await page.goto("/settings")
+    await page.getByRole("tab", { name: "API Keys" }).click()
+
+    await expect(page.getByTestId("api-key-wizard")).toBeVisible()
+  })
+
+  test("API Keys wizard shows step navigation", async ({ page }) => {
+    await page.goto("/settings")
+    await page.getByRole("tab", { name: "API Keys" }).click()
+
+    // Should show Next button on first step
+    await expect(page.getByTestId("wizard-next")).toBeVisible()
+  })
+
+  test("API Keys wizard can navigate between steps", async ({ page }) => {
+    await page.goto("/settings")
+    await page.getByRole("tab", { name: "API Keys" }).click()
+
+    // Go to step 2
+    await page.getByTestId("wizard-next").click()
+    await expect(page.getByTestId("wizard-prev")).toBeVisible()
+
+    // Go to step 3
+    await page.getByTestId("wizard-next").click()
+
+    // Go back to step 2
+    await page.getByTestId("wizard-prev").click()
+    await expect(page.getByTestId("wizard-next")).toBeVisible()
   })
 })
 
