@@ -55,8 +55,12 @@ services:
     ports:
       - "8080:8080"
 
+  prestart:
+    pull_policy: build
+
   backend:
     restart: "no"
+    pull_policy: build
     ports:
       - "8000:8000"
     build:
@@ -88,13 +92,14 @@ services:
       EMAILS_FROM_EMAIL: "noreply@example.com"
 
   mailcatcher:
-    image: schickling/mailcatcher
+    image: sj26/mailcatcher
     ports:
       - "1080:1080"
       - "1025:1025"
 
   frontend:
     restart: "no"
+    pull_policy: build
     ports:
       - "5173:80"
     build:

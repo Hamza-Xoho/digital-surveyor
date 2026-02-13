@@ -135,7 +135,7 @@ docker compose watch
 
 > **Important:** You must run `docker compose` from the **project root** (`digital-surveyor/`). Docker Compose auto-loads the `.env` file from the current directory — running it from elsewhere will fail with `Variable not set` errors.
 
-Wait 30-60 seconds for the database to initialise and migrations to run. Monitor with `docker compose logs -f backend`. When you see `Uvicorn running on http://0.0.0.0:8000`, the backend is ready.
+The first run will **build** the backend and frontend images from source — this takes 2-5 minutes depending on your machine. Subsequent starts are much faster. Wait for the database to initialise and migrations to run. Monitor with `docker compose logs -f backend`. When you see `Uvicorn running on http://0.0.0.0:8000`, the backend is ready.
 
 Once running:
 
