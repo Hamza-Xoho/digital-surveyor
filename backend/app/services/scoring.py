@@ -54,8 +54,8 @@ def score_vehicle_access(
             "threshold": None,
         })
 
-    # 2. Gradient Check
-    if gradient_result and gradient_result.get("max_gradient_pct", 0) > 0:
+    # 2. Gradient Check — treat 0% gradient (flat terrain) as valid GREEN data
+    if gradient_result and "error" not in gradient_result and gradient_result.get("max_gradient_pct") is not None:
         grad_rating = classify_gradient(
             gradient_result["max_gradient_pct"],
             vehicle.get("vehicle_class", ""),

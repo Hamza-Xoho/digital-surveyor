@@ -10,7 +10,7 @@ import re
 import httpx
 from pyproj import Transformer
 
-from app.errors import InvalidPostcodeError, PostcodeNotFoundError
+from app.errors import ExternalAPIError, InvalidPostcodeError, PostcodeNotFoundError
 from app.services.cache import get_cached, set_cached
 
 # UK postcode regex
@@ -71,13 +71,19 @@ async def geocode_postcode(postcode: str) -> dict:
     if cached:
         return cached
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        url = f"{POSTCODES_IO_URL}/{normalised.replace(' ', '%20')}"
-        resp = await client.get(url)
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            url = f"{POSTCODES_IO_URL}/{normalised.replace(' ', '%20')}"
+            resp = await client.get(url)
+    except (httpx.ConnectError, httpx.TimeoutException) as e:
+        raise ExternalAPIError(f"postcodes.io unavailable: {e}") from e
 
     if resp.status_code == 404:
         raise PostcodeNotFoundError(f"Postcode not found: {normalised}")
-    resp.raise_for_status()
+    if resp.status_code != 200:
+        raise ExternalAPIError(
+            f"postcodes.io returned HTTP {resp.status_code} for {normalised}"
+        )
 
     data = resp.json()
     result_data = data["result"]

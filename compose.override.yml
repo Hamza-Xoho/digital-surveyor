@@ -47,6 +47,8 @@ services:
 
   db:
     restart: "no"
+    # Official postgis/postgis lacks ARM64 builds — run under Rosetta on Apple Silicon
+    platform: linux/amd64
     ports:
       - "5432:5432"
 

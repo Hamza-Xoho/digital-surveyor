@@ -5,10 +5,13 @@ Reads elevation at coordinates using rasterio windowed reads.
 Computes gradient profiles along approach roads.
 """
 
+import logging
 import math
 import os
 import statistics
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 
@@ -155,7 +158,8 @@ def get_gradient_profile(
 
         try:
             elev = get_elevation(e, n, tile_path)
-        except Exception:
+        except Exception as exc:
+            logger.debug("Elevation read failed at (%s, %s): %s", e, n, exc)
             continue
 
         if math.isnan(elev):

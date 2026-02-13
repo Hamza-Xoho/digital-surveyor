@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from app.api.deps import CurrentUser, SessionDep
 from app.crud import create_assessment, get_assessment, list_assessments
-from app.errors import InvalidPostcodeError, PostcodeNotFoundError
+from app.errors import ExternalAPIError, InvalidPostcodeError, PostcodeNotFoundError
 from app.services.geocoding import geocode_postcode
 from app.services.os_features import fetch_area_features, fetch_line_features, get_features_wgs84
 from app.services.pipeline import run_full_assessment
@@ -29,8 +29,10 @@ async def quick_assessment(
         result = await run_full_assessment(postcode, vehicle_classes=vehicle_classes)
     except (InvalidPostcodeError, PostcodeNotFoundError) as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except ExternalAPIError as e:
+        raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Assessment pipeline error: {e}")
+        raise HTTPException(status_code=500, detail=f"Assessment pipeline error: {e}")
 
     return result
 
@@ -49,8 +51,10 @@ async def create_and_persist_assessment(
         result = await run_full_assessment(postcode, vehicle_classes=vehicle_classes)
     except (InvalidPostcodeError, PostcodeNotFoundError) as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except ExternalAPIError as e:
+        raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Assessment pipeline error: {e}")
+        raise HTTPException(status_code=500, detail=f"Assessment pipeline error: {e}")
 
     assessment = create_assessment(
         session=session,
@@ -81,6 +85,8 @@ async def get_geodata(postcode: str) -> Any:
         coords = await geocode_postcode(postcode)
     except (InvalidPostcodeError, PostcodeNotFoundError) as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except ExternalAPIError as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
     area_features = await fetch_area_features(coords["easting"], coords["northing"])
     line_features = await fetch_line_features(coords["easting"], coords["northing"])
@@ -144,10 +150,15 @@ def get_assessment_detail(
     assessment = get_assessment(session=session, assessment_id=assessment_id)
     if not assessment or assessment.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Assessment not found")
+    try:
+        results = json.loads(assessment.results_json)
+    except (json.JSONDecodeError, TypeError):
+        results = None
+
     return {
         "id": str(assessment.id),
         "postcode": assessment.postcode,
         "overall_rating": assessment.overall_rating,
         "created_at": assessment.created_at,
-        "results": json.loads(assessment.results_json),
+        "results": results,
     }

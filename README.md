@@ -30,6 +30,7 @@ Requires **Docker** and **Docker Compose**. Backend: **Python 3.10+**, **FastAPI
   - [Environment variables](#environment-variables)
   - [LiDAR tiles](#lidar-tiles)
 - [Running tests](#running-tests)
+- [Troubleshooting](#troubleshooting)
 - [Architecture](#architecture)
   - [Project structure](#project-structure)
   - [Data flow](#data-flow)
@@ -122,6 +123,8 @@ docker --version          # Docker 24+ recommended
 docker compose version    # Compose v2.20+ recommended
 ```
 
+> **Apple Silicon (M1/M2/M3/M4):** The development setup works natively on Apple Silicon Macs. The PostGIS database image runs under Rosetta 2 emulation automatically. In Docker Desktop, ensure **"Use Rosetta for x86_64/amd64 emulation on Apple Silicon"** is enabled (Settings → General — it's on by default).
+
 ### Quick start with Docker (recommended)
 
 Clone the repository and start the full stack with one command. Docker handles Python, Node, and PostgreSQL — nothing else to install.
@@ -135,7 +138,7 @@ docker compose watch
 
 > **Important:** You must run `docker compose` from the **project root** (`digital-surveyor/`). Docker Compose auto-loads the `.env` file from the current directory — running it from elsewhere will fail with `Variable not set` errors.
 
-The first run will **build** the backend and frontend images from source — this takes 2-5 minutes depending on your machine. Subsequent starts are much faster. Wait for the database to initialise and migrations to run. Monitor with `docker compose logs -f backend`. When you see `Uvicorn running on http://0.0.0.0:8000`, the backend is ready.
+The first run will **build** the backend and frontend images from source — this takes 2-5 minutes depending on your machine (longer on Apple Silicon due to PostGIS emulation). Subsequent starts are much faster. Wait for the database to initialise and migrations to run. Monitor with `docker compose logs -f backend`. When you see `Uvicorn running on http://0.0.0.0:8000`, the backend is ready.
 
 Once running:
 
@@ -553,6 +556,48 @@ cd backend
 uv run prek install -f    # Install hooks
 uv run prek run --all-files  # Run manually
 ```
+
+
+---
+
+
+## Troubleshooting
+
+### `Variable not set` errors on `docker compose watch`
+
+You're running the command from the wrong directory, or `.env` doesn't exist.
+
+```bash
+cd digital-surveyor        # Must be in project root
+cp .env.example .env       # Create .env if missing
+docker compose watch
+```
+
+### `pull access denied for backend` / `pull access denied for frontend`
+
+Docker is trying to pull images from Docker Hub instead of building locally. The `compose.override.yml` sets `pull_policy: build` for development. Make sure you're in the project root and haven't deleted `compose.override.yml`.
+
+### `no matching manifest for linux/arm64/v8`
+
+This happens on Apple Silicon Macs. The development override handles this by:
+- Setting `platform: linux/amd64` on the PostGIS database (runs under Rosetta 2)
+- Using `sj26/mailcatcher` instead of the unmaintained `schickling/mailcatcher`
+
+Ensure Rosetta emulation is enabled in Docker Desktop: **Settings → General → "Use Rosetta for x86_64/amd64 emulation on Apple Silicon"**.
+
+### Database healthcheck fails / backend hangs on startup
+
+The backend waits for PostgreSQL to be healthy before running migrations. If the database is slow to start (common on first run with Rosetta emulation), wait 30-60 seconds and check logs:
+
+```bash
+docker compose logs db          # Check PostgreSQL is ready
+docker compose logs prestart    # Check migrations ran
+docker compose logs backend     # Check backend started
+```
+
+### `WARN: The "CI" variable is not set`
+
+This warning is harmless — the `CI` variable is only used by the Playwright test service and can be ignored during normal development.
 
 
 ---

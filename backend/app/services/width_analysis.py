@@ -219,6 +219,7 @@ def compute_road_widths(line_features_geojson: dict[str, Any]) -> dict[str, Any]
             "pinch_points": [],
             "measurements": [],
             "measurement_lines_geojson": {"type": "FeatureCollection", "features": []},
+            "error": "No width measurements from edge pairs",
         }
 
     width_values = [m["width_m"] for m in all_measurements]
