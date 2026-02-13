@@ -55,7 +55,7 @@
     "@hey-api/openapi-ts": "0.73.0",
     "@playwright/test": "1.58.2",
     "@tanstack/router-devtools": "^1.157.17",
-    "@tanstack/router-plugin": "^1.140.0",
+    "@tanstack/router-plugin": "^1.159.6",
     "@types/geojson": "^7946.0.16",
     "@types/leaflet": "^1.9.18",
     "@types/node": "^25.1.0",
