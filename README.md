@@ -109,7 +109,7 @@ The response includes GeoJSON overlays for roads, buildings, and width measureme
 Clone the repository and start the full stack with one command. Docker handles Python, Node, and PostgreSQL — nothing else to install.
 
 ```bash
-git clone https://github.com/yourorg/digital-surveyor.git
+git clone https://github.com/hamza-xoho/digital-surveyor.git
 cd digital-surveyor
 docker compose watch
 ```
