@@ -78,7 +78,7 @@ class TestCoordinateTransforms:
         assert abs(lon - original_lon) < 0.0001
 
     def test_brighton_coords(self):
-        """Brighton: BNG ~530600, 104100."""
+        """Brighton: BNG ~531300, 104150."""
         easting, northing = latlng_to_bng(50.822, -0.137)
-        assert abs(easting - 530600) < 500
-        assert abs(northing - 104100) < 500
+        assert abs(easting - 531300) < 500
+        assert abs(northing - 104150) < 500
