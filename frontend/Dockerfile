@@ -9,7 +9,11 @@ COPY frontend/package.json /app/frontend/
 
 WORKDIR /app/frontend
 
-RUN bun install
+# --no-verify: lockfile is generated on macOS (darwin) but Docker builds on
+# Linux — platform-specific package tarballs (e.g. @biomejs/cli-linux-arm64
+# vs @biomejs/cli-darwin-arm64) have different hashes, so integrity checks
+# for cross-platform packages will fail without this flag.
+RUN bun install --no-verify
 
 COPY ./frontend /app/frontend
 ARG VITE_API_URL

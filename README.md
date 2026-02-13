@@ -611,6 +611,19 @@ docker compose logs prestart    # Check migrations ran
 docker compose logs backend     # Check backend started
 ```
 
+### `Integrity check failed for tarball` during frontend build
+
+Bun's lockfile stores tarball hashes per platform. If you generate `bun.lock` on macOS and Docker builds on Linux, platform-specific packages (e.g. `@biomejs/cli-darwin-arm64` vs `@biomejs/cli-linux-arm64`) will have different hashes. The Dockerfile uses `bun install --no-verify` to handle this automatically.
+
+If you still see this error after pulling new changes, regenerate the lockfile:
+
+```bash
+rm -rf node_modules frontend/node_modules bun.lock
+bun install
+```
+
+Then commit the new `bun.lock` and rebuild.
+
 ### `WARN: The "CI" variable is not set`
 
 This warning is harmless — the `CI` variable is only used by the Playwright test service and can be ignored during normal development.
