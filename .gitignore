@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+__MACOSX/
+
+# Node
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# LiDAR data (large files)
+lidar-data/*.tif
+lidar-data/*.tiff

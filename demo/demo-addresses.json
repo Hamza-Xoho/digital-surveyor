@@ -1,0 +1,62 @@
+[
+  {
+    "postcode": "BN3 3EL",
+    "scenario": "Wide suburban avenue",
+    "area": "Hove",
+    "expected_overall": "GREEN",
+    "expected_luton": "GREEN",
+    "expected_7t": "GREEN",
+    "expected_18t": "GREEN",
+    "pitch_story": "Your 18-tonner fits with room to spare. Wide tree-lined avenue, flat approach, plenty of turning space at the end."
+  },
+  {
+    "postcode": "BN2 1TJ",
+    "scenario": "Narrow Brighton terrace",
+    "area": "Kemptown, Brighton",
+    "expected_overall": "RED",
+    "expected_luton": "GREEN",
+    "expected_7t": "AMBER",
+    "expected_18t": "RED",
+    "pitch_story": "Classic removal nightmare. Terraced street, parked cars both sides. Luton van fits, but the 18-tonner physically cannot. You'd need to shuttle — now you can price that into the quote."
+  },
+  {
+    "postcode": "BN1 5FG",
+    "scenario": "Steep hill approach",
+    "area": "Fiveways, Brighton",
+    "expected_overall": "AMBER",
+    "expected_luton": "GREEN",
+    "expected_7t": "AMBER",
+    "expected_18t": "AMBER",
+    "pitch_story": "6% gradient on the approach. Your loaded 18-tonner is going to work hard, especially in the wet. Tool flags it as AMBER so the driver knows to plan for it."
+  },
+  {
+    "postcode": "RH16 3AS",
+    "scenario": "Suburban cul-de-sac",
+    "area": "Haywards Heath",
+    "expected_overall": "AMBER",
+    "expected_luton": "GREEN",
+    "expected_7t": "GREEN",
+    "expected_18t": "AMBER",
+    "pitch_story": "Good width, flat approach. But it's a cul-de-sac — the 18-tonner can get in but there's barely enough room to turn around at the end. The 7.5-tonner turns fine."
+  },
+  {
+    "postcode": "RH10 1HZ",
+    "scenario": "Industrial estate access",
+    "area": "Crawley",
+    "expected_overall": "GREEN",
+    "expected_luton": "GREEN",
+    "expected_7t": "GREEN",
+    "expected_18t": "GREEN",
+    "pitch_story": "Built for trucks. Wide commercial road, no restrictions, turning circles designed for HGVs. Send whatever you need."
+  },
+  {
+    "postcode": "BN1 8YJ",
+    "scenario": "Worst case: narrow + steep + dead end",
+    "area": "Hanover, Brighton",
+    "expected_overall": "RED",
+    "expected_luton": "AMBER",
+    "expected_7t": "RED",
+    "expected_18t": "RED",
+    "pitch_story": "The trifecta of pain. Narrow Victorian streets, 8% gradient, dead end with no turning. Send the Luton van. Plan for 3 trips. Here's what that costs."
+  }
+]

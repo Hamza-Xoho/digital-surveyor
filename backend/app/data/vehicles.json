@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Luton Van 3.5t",
+    "vehicle_class": "luton_van",
+    "width_m": 2.25,
+    "length_m": 6.7,
+    "height_m": 3.2,
+    "weight_kg": 3500,
+    "turning_radius_m": 6.7,
+    "mirror_width_m": 0.25
+  },
+  {
+    "name": "Box Truck 7.5t",
+    "vehicle_class": "box_truck_7t",
+    "width_m": 2.5,
+    "length_m": 8.5,
+    "height_m": 3.7,
+    "weight_kg": 7500,
+    "turning_radius_m": 9.0,
+    "mirror_width_m": 0.25
+  },
+  {
+    "name": "Pantechnicon 18t",
+    "vehicle_class": "pantechnicon_18t",
+    "width_m": 2.55,
+    "length_m": 11.0,
+    "height_m": 4.0,
+    "weight_kg": 18000,
+    "turning_radius_m": 12.8,
+    "mirror_width_m": 0.25
+  }
+]
