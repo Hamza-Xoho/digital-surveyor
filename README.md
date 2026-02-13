@@ -104,6 +104,24 @@ The response includes GeoJSON overlays for roads, buildings, and width measureme
 
 ## Installation
 
+### Prerequisites — Install Docker
+
+You need **Docker** and **Docker Compose** (v2) installed before proceeding. If you don't have them:
+
+| Platform | Install method |
+|----------|---------------|
+| **macOS** | Download [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) and run the installer. |
+| **Windows** | Download [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/). Requires WSL 2 — the installer will prompt you to enable it. |
+| **Linux (Ubuntu/Debian)** | `sudo apt update && sudo apt install docker.io docker-compose-v2` then `sudo usermod -aG docker $USER` (log out and back in). |
+| **Linux (other)** | Follow the [official install guide](https://docs.docker.com/engine/install/). |
+
+Verify your installation:
+
+```bash
+docker --version          # Docker 24+ recommended
+docker compose version    # Compose v2.20+ recommended
+```
+
 ### Quick start with Docker (recommended)
 
 Clone the repository and start the full stack with one command. Docker handles Python, Node, and PostgreSQL — nothing else to install.
@@ -111,8 +129,11 @@ Clone the repository and start the full stack with one command. Docker handles P
 ```bash
 git clone https://github.com/hamza-xoho/digital-surveyor.git
 cd digital-surveyor
+cp .env.example .env      # Create your local config (edit API keys later)
 docker compose watch
 ```
+
+> **Important:** You must run `docker compose` from the **project root** (`digital-surveyor/`). Docker Compose auto-loads the `.env` file from the current directory — running it from elsewhere will fail with `Variable not set` errors.
 
 Wait 30-60 seconds for the database to initialise and migrations to run. Monitor with `docker compose logs -f backend`. When you see `Uvicorn running on http://0.0.0.0:8000`, the backend is ready.
 
