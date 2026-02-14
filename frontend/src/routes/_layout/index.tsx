@@ -1,171 +1,93 @@
-import { Link } from "@tanstack/react-router"
 import { createFileRoute } from "@tanstack/react-router"
-import { MapPin, Settings, Key, CheckCircle2, AlertTriangle } from "lucide-react"
+import { ClipboardCheck, Truck, TrendingUp } from "lucide-react"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import useAuth from "@/hooks/useAuth"
-import { useApiKeyStatus } from "@/hooks/useApiKeys"
+import { useAssessmentHistory } from "@/hooks/useAssessment"
+import { useVehicleProfiles } from "@/hooks/useVehicles"
+import StatsCard from "@/components/Dashboard/StatsCard"
+import QuickAssessment from "@/components/Dashboard/QuickAssessment"
+import RecentAssessments from "@/components/Dashboard/RecentAssessments"
+import DataSourceStatus from "@/components/Dashboard/DataSourceStatus"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
   head: () => ({
-    meta: [
-      {
-        title: "Dashboard - Digital Surveyor",
-      },
-    ],
+    meta: [{ title: "Dashboard - Digital Surveyor" }],
   }),
 })
 
-function ApiKeyStatusCard() {
-  const { data: status, isLoading, isError } = useApiKeyStatus()
+function Dashboard() {
+  const { user: currentUser, isLoading: authLoading } = useAuth()
+  const { data: assessments } = useAssessmentHistory()
+  const { data: vehicles } = useVehicleProfiles()
 
-  if (isLoading) {
+  const assessmentCount = Array.isArray(assessments) ? assessments.length : 0
+  const vehicleCount = vehicles?.length ?? 0
+
+  const greenCount = Array.isArray(assessments)
+    ? assessments.filter((a: any) => a.overall_rating === "GREEN").length
+    : 0
+  const passRate =
+    assessmentCount > 0 ? Math.round((greenCount / assessmentCount) * 100) : 0
+
+  if (authLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Key className="size-4" />
-            API Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <div className="h-10 w-48 animate-pulse rounded bg-muted" />
+        <div className="grid gap-4 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
+          ))}
+        </div>
+      </div>
     )
   }
-
-  if (isError || !status) {
-    return null
-  }
-
-  const configuredCount = [
-    status.os_configured,
-    status.here_configured,
-    status.mapillary_configured,
-  ].filter(Boolean).length
-
-  const hasWarning = !status.os_configured
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Key className="size-4" />
-          API Configuration
-        </CardTitle>
-        <CardDescription>
-          {configuredCount}/3 API keys configured
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2">
-            {status.os_configured ? (
-              <CheckCircle2 className="size-4 text-green-600" />
-            ) : (
-              <AlertTriangle className="size-4 text-amber-500" />
-            )}
-            <span>Ordnance Survey</span>
-            <span className={`ml-auto text-xs ${status.os_configured ? "text-green-600" : "text-amber-500"}`}>
-              {status.os_configured ? "Active" : "Not configured"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {status.here_configured ? (
-              <CheckCircle2 className="size-4 text-green-600" />
-            ) : (
-              <span className="size-4 rounded-full border border-muted-foreground/30" />
-            )}
-            <span>HERE Routing</span>
-            <span className={`ml-auto text-xs ${status.here_configured ? "text-green-600" : "text-muted-foreground"}`}>
-              {status.here_configured ? "Active" : "Optional"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {status.mapillary_configured ? (
-              <CheckCircle2 className="size-4 text-green-600" />
-            ) : (
-              <span className="size-4 rounded-full border border-muted-foreground/30" />
-            )}
-            <span>Mapillary</span>
-            <span className={`ml-auto text-xs ${status.mapillary_configured ? "text-green-600" : "text-muted-foreground"}`}>
-              {status.mapillary_configured ? "Active" : "Optional"}
-            </span>
-          </div>
-        </div>
-        {hasWarning && (
-          <Button asChild variant="outline" size="sm" className="w-full">
-            <Link to="/settings">
-              <Settings className="mr-2 size-4" />
-              Configure API Keys
-            </Link>
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-function Dashboard() {
-  const { user: currentUser } = useAuth()
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight truncate max-w-lg">
-          Hi, {currentUser?.full_name || currentUser?.email}
+        <h1 className="text-2xl font-bold tracking-tight">
+          Welcome back{currentUser?.full_name ? `, ${currentUser.full_name}` : ""}
         </h1>
         <p className="text-muted-foreground">
-          Welcome back, nice to see you again!
+          Assess vehicle access for UK properties
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* Quick action: Run Assessment */}
-        <Card className="cursor-pointer transition-shadow hover:shadow-md">
-          <Link to="/assessments" className="block">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <MapPin className="size-4 text-blue-600" />
-                Run Assessment
-              </CardTitle>
-              <CardDescription>
-                Check vehicle access for a UK postcode
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Enter a postcode to analyse road width, gradient, and turning space for different vehicle types.
-              </p>
-            </CardContent>
-          </Link>
-        </Card>
+      {/* Stats row */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatsCard
+          title="Total Assessments"
+          value={assessmentCount}
+          description={assessmentCount === 1 ? "assessment completed" : "assessments completed"}
+          icon={ClipboardCheck}
+          iconColor="text-blue-600"
+        />
+        <StatsCard
+          title="Vehicle Profiles"
+          value={vehicleCount}
+          description="configured vehicles"
+          icon={Truck}
+          iconColor="text-violet-600"
+        />
+        <StatsCard
+          title="Pass Rate"
+          value={assessmentCount > 0 ? `${passRate}%` : "--"}
+          description={assessmentCount > 0 ? `${greenCount} green of ${assessmentCount}` : "No data yet"}
+          icon={TrendingUp}
+          iconColor="text-green-600"
+        />
+      </div>
 
-        {/* API Key Status (superuser only) */}
-        {currentUser?.is_superuser && <ApiKeyStatusCard />}
-
-        {/* Account Settings */}
-        <Card className="cursor-pointer transition-shadow hover:shadow-md">
-          <Link to="/settings" className="block">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Settings className="size-4" />
-                Account Settings
-              </CardTitle>
-              <CardDescription>
-                Manage your profile and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Update your name, email, password, and theme preferences.
-              </p>
-            </CardContent>
-          </Link>
-        </Card>
+      {/* Main content grid */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-6">
+          <QuickAssessment />
+          <RecentAssessments />
+        </div>
+        <div className="space-y-6">
+          {currentUser?.is_superuser && <DataSourceStatus />}
+        </div>
       </div>
     </div>
   )

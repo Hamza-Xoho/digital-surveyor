@@ -19,11 +19,14 @@ function getUsersQueryOptions() {
 export const Route = createFileRoute("/_layout/admin")({
   component: Admin,
   beforeLoad: async () => {
-    const user = await UsersService.readUserMe()
-    if (!user.is_superuser) {
-      throw redirect({
-        to: "/",
-      })
+    try {
+      const user = await UsersService.readUserMe()
+      if (!user.is_superuser) {
+        throw redirect({ to: "/" })
+      }
+    } catch (err: any) {
+      if (err?.to) throw err // re-throw TanStack redirect
+      throw redirect({ to: "/login" })
     }
   },
   head: () => ({

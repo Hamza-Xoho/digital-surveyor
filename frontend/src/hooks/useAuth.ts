@@ -9,21 +9,33 @@ import {
   UsersService,
 } from "@/client"
 import { handleError } from "@/utils"
+import {
+  isLoggedIn,
+  clearAuthState,
+  setAccessToken,
+} from "@/utils/token"
 import useCustomToast from "./useCustomToast"
-
-const isLoggedIn = () => {
-  return localStorage.getItem("access_token") !== null
-}
 
 const useAuth = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { showErrorToast } = useCustomToast()
 
-  const { data: user } = useQuery<UserPublic | null, Error>({
+  const { data: user, isLoading } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
-    queryFn: UsersService.readUserMe,
+    queryFn: async () => {
+      try {
+        return await UsersService.readUserMe()
+      } catch (err: any) {
+        if (err?.status === 401 || err?.status === 403) {
+          clearAuthState()
+          return null
+        }
+        throw err
+      }
+    },
     enabled: isLoggedIn(),
+    retry: false,
   })
 
   const signUpMutation = useMutation({
@@ -42,7 +54,7 @@ const useAuth = () => {
     const response = await LoginService.loginAccessToken({
       formData: data,
     })
-    localStorage.setItem("access_token", response.access_token)
+    setAccessToken(response.access_token)
   }
 
   const loginMutation = useMutation({
@@ -54,7 +66,8 @@ const useAuth = () => {
   })
 
   const logout = () => {
-    localStorage.removeItem("access_token")
+    clearAuthState()
+    queryClient.clear()
     navigate({ to: "/login" })
   }
 
@@ -63,6 +76,7 @@ const useAuth = () => {
     loginMutation,
     logout,
     user,
+    isLoading,
   }
 }
 

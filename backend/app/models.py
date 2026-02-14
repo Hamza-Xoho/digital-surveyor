@@ -54,6 +54,7 @@ class User(UserBase, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
     assessments: list["Assessment"] = Relationship(back_populates="owner", cascade_delete=True)
+    saved_locations: list["SavedLocation"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
 # Properties to return via API, id is always required
@@ -95,6 +96,7 @@ class Assessment(SQLModel, table=True):
     northing: float
     results_json: str
     overall_rating: str = Field(max_length=10)
+    notes: str | None = Field(default=None, max_length=2000)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -103,6 +105,23 @@ class Assessment(SQLModel, table=True):
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
     owner: User | None = Relationship(back_populates="assessments")
+
+
+class SavedLocation(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    label: str = Field(max_length=200)
+    postcode: str = Field(max_length=10, index=True)
+    latitude: float
+    longitude: float
+    notes: str | None = Field(default=None, max_length=2000)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    owner_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    owner: User | None = Relationship(back_populates="saved_locations")
 
 
 class GeoCache(SQLModel, table=True):

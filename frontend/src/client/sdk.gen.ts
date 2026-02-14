@@ -3,22 +3,69 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AssessmentsQuickAssessmentData, AssessmentsQuickAssessmentResponse, AssessmentsCreateAndPersistAssessmentData, AssessmentsCreateAndPersistAssessmentResponse, AssessmentsListUserAssessmentsData, AssessmentsListUserAssessmentsResponse, AssessmentsGetGeodataData, AssessmentsGetGeodataResponse, AssessmentsGetAssessmentDetailData, AssessmentsGetAssessmentDetailResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, SettingsGetApiKeyStatusResponse, SettingsUpdateApiKeysData, SettingsUpdateApiKeysResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsPurgeCacheResponse, VehiclesListVehiclesResponse, VehiclesGetVehicleData, VehiclesGetVehicleResponse } from './types.gen';
 
-export class ItemsService {
+export class AssessmentsService {
     /**
-     * Read Items
-     * Retrieve items.
+     * Quick Assessment
+     * Full access assessment for a UK postcode.
+     * Returns Green/Amber/Red rating per vehicle class with GeoJSON overlays.
+     * @param data The data for the request.
+     * @param data.postcode UK postcode e.g. BN1 1AB
+     * @param data.vehicleClasses Filter by vehicle class names
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static quickAssessment(data: AssessmentsQuickAssessmentData): CancelablePromise<AssessmentsQuickAssessmentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/assessments/quick',
+            query: {
+                postcode: data.postcode,
+                vehicle_classes: data.vehicleClasses
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create And Persist Assessment
+     * Run a full assessment and persist the results for the authenticated user.
+     * @param data The data for the request.
+     * @param data.postcode UK postcode e.g. BN1 1AB
+     * @param data.vehicleClasses Filter by vehicle class names
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static createAndPersistAssessment(data: AssessmentsCreateAndPersistAssessmentData): CancelablePromise<AssessmentsCreateAndPersistAssessmentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/assessments/',
+            query: {
+                postcode: data.postcode,
+                vehicle_classes: data.vehicleClasses
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List User Assessments
+     * List past assessments for the current user.
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
-     * @returns ItemsPublic Successful Response
+     * @returns unknown Successful Response
      * @throws ApiError
      */
-    public static readItems(data: ItemsReadItemsData = {}): CancelablePromise<ItemsReadItemsResponse> {
+    public static listUserAssessments(data: AssessmentsListUserAssessmentsData = {}): CancelablePromise<AssessmentsListUserAssessmentsResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/items/',
+            url: '/api/v1/assessments/',
             query: {
                 skip: data.skip,
                 limit: data.limit
@@ -30,39 +77,20 @@ export class ItemsService {
     }
     
     /**
-     * Create Item
-     * Create new item.
+     * Get Geodata
+     * Returns raw OS MasterMap GeoJSON around a postcode.
+     * For debugging and verifying the OS API integration.
      * @param data The data for the request.
-     * @param data.requestBody
-     * @returns ItemPublic Successful Response
+     * @param data.postcode
+     * @returns unknown Successful Response
      * @throws ApiError
      */
-    public static createItem(data: ItemsCreateItemData): CancelablePromise<ItemsCreateItemResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/items/',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Read Item
-     * Get item by ID.
-     * @param data The data for the request.
-     * @param data.id
-     * @returns ItemPublic Successful Response
-     * @throws ApiError
-     */
-    public static readItem(data: ItemsReadItemData): CancelablePromise<ItemsReadItemResponse> {
+    public static getGeodata(data: AssessmentsGetGeodataData): CancelablePromise<AssessmentsGetGeodataResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/items/{id}',
+            url: '/api/v1/assessments/geodata/{postcode}',
             path: {
-                id: data.id
+                postcode: data.postcode
             },
             errors: {
                 422: 'Validation Error'
@@ -71,43 +99,19 @@ export class ItemsService {
     }
     
     /**
-     * Update Item
-     * Update an item.
+     * Get Assessment Detail
+     * Get a specific assessment by ID.
      * @param data The data for the request.
-     * @param data.id
-     * @param data.requestBody
-     * @returns ItemPublic Successful Response
+     * @param data.assessmentId
+     * @returns unknown Successful Response
      * @throws ApiError
      */
-    public static updateItem(data: ItemsUpdateItemData): CancelablePromise<ItemsUpdateItemResponse> {
+    public static getAssessmentDetail(data: AssessmentsGetAssessmentDetailData): CancelablePromise<AssessmentsGetAssessmentDetailResponse> {
         return __request(OpenAPI, {
-            method: 'PUT',
-            url: '/api/v1/items/{id}',
+            method: 'GET',
+            url: '/api/v1/assessments/{assessment_id}',
             path: {
-                id: data.id
-            },
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Delete Item
-     * Delete an item.
-     * @param data The data for the request.
-     * @param data.id
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static deleteItem(data: ItemsDeleteItemData): CancelablePromise<ItemsDeleteItemResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/items/{id}',
-            path: {
-                id: data.id
+                assessment_id: data.assessmentId
             },
             errors: {
                 422: 'Validation Error'
@@ -226,6 +230,44 @@ export class PrivateService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/private/users/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class SettingsService {
+    /**
+     * Get Api Key Status
+     * Get the current status of configured API keys.
+     * Keys are masked for security — only first/last 4 chars shown.
+     * @returns ApiKeyStatus Successful Response
+     * @throws ApiError
+     */
+    public static getApiKeyStatus(): CancelablePromise<SettingsGetApiKeyStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/settings/api-keys'
+        });
+    }
+    
+    /**
+     * Update Api Keys
+     * Update API keys at runtime. Only non-null fields are updated.
+     * Changes persist in memory for the current server process.
+     * To persist across restarts, also update the .env file.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ApiKeyStatus Successful Response
+     * @throws ApiError
+     */
+    public static updateApiKeys(data: SettingsUpdateApiKeysData): CancelablePromise<SettingsUpdateApiKeysResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/settings/api-keys',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -463,6 +505,55 @@ export class UtilsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/utils/health-check/'
+        });
+    }
+    
+    /**
+     * Purge Cache
+     * Purge all expired geo-cache entries (admin only).
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static purgeCache(): CancelablePromise<UtilsPurgeCacheResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/utils/purge-cache/'
+        });
+    }
+}
+
+export class VehiclesService {
+    /**
+     * List Vehicles
+     * List all vehicle profiles.
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static listVehicles(): CancelablePromise<VehiclesListVehiclesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/vehicles/'
+        });
+    }
+    
+    /**
+     * Get Vehicle
+     * Get a single vehicle profile by class name.
+     * @param data The data for the request.
+     * @param data.vehicleClass
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getVehicle(data: VehiclesGetVehicleData): CancelablePromise<VehiclesGetVehicleResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/vehicles/{vehicle_class}',
+            path: {
+                vehicle_class: data.vehicleClass
+            },
+            errors: {
+                422: 'Validation Error'
+            }
         });
     }
 }

@@ -32,7 +32,7 @@ test("Navigate back to Dashboard from Assessments", async ({ page }) => {
   await page.waitForURL("/")
 
   await expect(
-    page.getByText("Welcome back, nice to see you again!"),
+    page.getByRole("heading", { level: 1, name: /Welcome back/ }),
   ).toBeVisible()
 })
 
@@ -42,7 +42,7 @@ test("Logo link navigates to Dashboard", async ({ page }) => {
   await page.waitForURL("/")
 
   await expect(
-    page.getByText("Welcome back, nice to see you again!"),
+    page.getByRole("heading", { level: 1, name: /Welcome back/ }),
   ).toBeVisible()
 })
 

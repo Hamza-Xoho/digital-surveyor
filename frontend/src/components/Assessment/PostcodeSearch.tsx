@@ -1,5 +1,7 @@
 import { useState, FormEvent } from "react"
 import { Search, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 interface Props {
   onSubmit: (postcode: string) => void
@@ -8,6 +10,14 @@ interface Props {
 }
 
 const POSTCODE_RE = /^[A-Za-z]{1,2}\d[A-Za-z\d]?\s*\d[A-Za-z]{2}$/
+
+function formatPostcode(value: string): string {
+  const clean = value.replace(/\s+/g, "").toUpperCase()
+  if (clean.length > 3) {
+    return `${clean.slice(0, -3)} ${clean.slice(-3)}`
+  }
+  return clean
+}
 
 export default function PostcodeSearch({ onSubmit, isLoading, error }: Props) {
   const [postcode, setPostcode] = useState("")
@@ -23,31 +33,31 @@ export default function PostcodeSearch({ onSubmit, isLoading, error }: Props) {
   }
 
   return (
-    <div className="mb-6">
-      <h2 className="text-lg font-semibold mb-3 text-gray-800">
-        Property Access Check
-      </h2>
+    <div className="space-y-3">
+      <div>
+        <h2 className="text-lg font-semibold">Property Access Check</h2>
+        <p className="text-sm text-muted-foreground">
+          Enter a UK postcode to assess vehicle access
+        </p>
+      </div>
       <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
+        <Input
           type="text"
           value={postcode}
-          onChange={(e) => { setPostcode(e.target.value.toUpperCase()); setValidationError("") }}
+          onChange={(e) => { setPostcode(formatPostcode(e.target.value)); setValidationError("") }}
           placeholder="e.g. BN1 1AB"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           disabled={isLoading}
-          maxLength={8}
+          maxLength={9}
+          className="flex-1"
+          data-testid="postcode-input"
         />
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+        <Button type="submit" disabled={isLoading} data-testid="assess-button">
+          {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Search className="mr-2 size-4" />}
           Assess
-        </button>
+        </Button>
       </form>
-      {validationError && <p className="mt-2 text-sm text-red-600">{validationError}</p>}
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {validationError && <p className="text-sm text-destructive">{validationError}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   )
 }

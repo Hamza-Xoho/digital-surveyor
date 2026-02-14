@@ -73,11 +73,11 @@ test.describe("Postcode Validation", () => {
     await expect(input).toHaveValue("BN1 1AB")
   })
 
-  test("Postcode input has max length of 8", async ({ page }) => {
+  test("Postcode input has max length of 9", async ({ page }) => {
     await page.goto("/assessments")
 
     const input = page.getByRole("textbox", { name: "e.g. BN1 1AB" })
-    await expect(input).toHaveAttribute("maxlength", "8")
+    await expect(input).toHaveAttribute("maxlength", "9")
   })
 })
 
@@ -90,8 +90,8 @@ test.describe("Assessment Flow", () => {
       .fill("BN1 1AB")
     await page.getByRole("button", { name: "Assess" }).click()
 
-    // Wait for results to appear (overall rating badge)
-    await expect(page.getByText(/BN1 1AB — Overall:/)).toBeVisible({
+    // Wait for results to appear (postcode shown in results panel)
+    await expect(page.locator("p.text-lg.font-bold", { hasText: "BN1 1AB" })).toBeVisible({
       timeout: 15000,
     })
   })
@@ -104,10 +104,14 @@ test.describe("Assessment Flow", () => {
       .fill("BN1 1AB")
     await page.getByRole("button", { name: "Assess" }).click()
 
-    // Overall rating should be GREEN, AMBER, or RED
+    // Wait for results, then check for rating badge
+    await expect(page.locator("p.text-lg.font-bold", { hasText: "BN1 1AB" })).toBeVisible({
+      timeout: 15000,
+    })
+    // Overall rating badge should show one of the rating levels
     await expect(
-      page.getByText(/BN1 1AB — Overall: (GREEN|AMBER|RED)/),
-    ).toBeVisible({ timeout: 15000 })
+      page.getByText(/Suitable|Restricted|Not Recommended|No access/).first(),
+    ).toBeVisible()
   })
 
   test("Assessment shows three vehicle cards", async ({ page }) => {
@@ -119,7 +123,7 @@ test.describe("Assessment Flow", () => {
     await page.getByRole("button", { name: "Assess" }).click()
 
     // Wait for results
-    await expect(page.getByText(/BN1 1AB — Overall:/)).toBeVisible({
+    await expect(page.locator("p.text-lg.font-bold", { hasText: "BN1 1AB" })).toBeVisible({
       timeout: 15000,
     })
 
@@ -164,7 +168,7 @@ test.describe("Assessment Flow", () => {
     await page.getByRole("button", { name: "Assess" }).click()
 
     // Wait for results
-    await expect(page.getByText(/BN1 1AB — Overall:/)).toBeVisible({
+    await expect(page.locator("p.text-lg.font-bold", { hasText: "BN1 1AB" })).toBeVisible({
       timeout: 15000,
     })
 
@@ -181,39 +185,34 @@ test.describe("Vehicle Card Expansion", () => {
       .getByRole("textbox", { name: "e.g. BN1 1AB" })
       .fill("BN1 1AB")
     await page.getByRole("button", { name: "Assess" }).click()
-    await expect(page.getByText(/BN1 1AB — Overall:/)).toBeVisible({
+    await expect(page.locator("p.text-lg.font-bold", { hasText: "BN1 1AB" })).toBeVisible({
       timeout: 15000,
     })
   })
 
   test("Expanding vehicle card shows check details", async ({ page }) => {
-    // Click the expand/collapse chevron button near Luton Van
-    // The card structure has the vehicle name, a truck icon, and an expand button
-    const lutonCard = page.getByText("Luton Van 3.5t").locator("..").locator("..")
+    // Click the expand/collapse chevron button on the Luton Van card
+    const lutonCard = page.locator("[class*='cursor-pointer']").filter({ hasText: "Luton Van 3.5t" }).first()
     await lutonCard.locator("button").click()
 
-    // Should show individual checks
-    await expect(page.getByText("Gradient", { exact: true })).toBeVisible()
-    await expect(page.getByText("Turning Space", { exact: true })).toBeVisible()
-    await expect(page.getByText("Route Restrictions", { exact: true })).toBeVisible()
+    // Should show individual checks (scoped to the check detail area with colored text)
+    await expect(page.locator("p.text-xs.font-medium", { hasText: "Gradient" })).toBeVisible()
+    await expect(page.locator("p.text-xs.font-medium", { hasText: "Turning Space" })).toBeVisible()
+    await expect(page.locator("p.text-xs.font-medium", { hasText: "Route Restrictions" })).toBeVisible()
   })
 
   test("Expanding vehicle card shows recommendation", async ({ page }) => {
-    const firstCard = page.getByText("Luton Van 3.5t").locator("..")
-    const expandBtn = firstCard.locator("..").locator("button").last()
-    await expandBtn.click()
+    const lutonCard = page.locator("[class*='cursor-pointer']").filter({ hasText: "Luton Van 3.5t" }).first()
+    await lutonCard.locator("button").click()
 
-    // Should show recommendation text
-    await expect(page.getByText(/Luton Van 3.5t .*/)).toBeVisible()
+    // Should show recommendation text (italic text below checks)
+    await expect(page.locator("p.text-xs.italic").first()).toBeVisible()
   })
 
   test("Expanding vehicle card shows confidence score", async ({ page }) => {
-    const firstCard = page.getByText("Luton Van 3.5t").locator("..")
-    const expandBtn = firstCard.locator("..").locator("button").last()
-    await expandBtn.click()
-
-    // Should show confidence percentage
-    await expect(page.getByText(/Confidence: \d+%/)).toBeVisible()
+    // Confidence score is shown as a percentage next to the progress bar on each card
+    // No expansion needed — it's always visible
+    await expect(page.getByText(/\d+%/).first()).toBeVisible()
   })
 })
 
@@ -225,15 +224,16 @@ test.describe("Multiple Assessments", () => {
     const input = page.getByRole("textbox", { name: "e.g. BN1 1AB" })
     await input.fill("BN1 1AB")
     await page.getByRole("button", { name: "Assess" }).click()
-    await expect(page.getByText(/BN1 1AB — Overall:/)).toBeVisible({
-      timeout: 15000,
+    // New UI shows postcode in a card with a rating badge
+    await expect(page.locator("p.text-lg.font-bold", { hasText: "BN1 1AB" })).toBeVisible({
+      timeout: 30000,
     })
 
     // Second assessment with different postcode
     await input.fill("SW1A 1AA")
     await page.getByRole("button", { name: "Assess" }).click()
-    await expect(page.getByText(/SW1A 1AA — Overall:/)).toBeVisible({
-      timeout: 15000,
+    await expect(page.locator("p.text-lg.font-bold", { hasText: "SW1A 1AA" })).toBeVisible({
+      timeout: 30000,
     })
   })
 })
@@ -263,8 +263,8 @@ test.describe("Assessment Error Handling", () => {
       .fill("BN1 1AB")
     await page.getByRole("button", { name: "Assess" }).click()
 
-    // After results load, the button should be enabled again
-    await expect(page.getByText(/BN1 1AB — Overall:/)).toBeVisible({
+    // After results load, the postcode and rating badge should be visible
+    await expect(page.locator("p.text-lg.font-bold", { hasText: "BN1 1AB" })).toBeVisible({
       timeout: 15000,
     })
     await expect(

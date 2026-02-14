@@ -1,4 +1,4 @@
-import { Home, MapPin, Settings, Users } from "lucide-react"
+import { Home, MapPin, Truck, Settings, Users } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -15,6 +15,7 @@ import { User } from "./User"
 const baseItems: Item[] = [
   { icon: Home, title: "Dashboard", path: "/" },
   { icon: MapPin, title: "Assessments", path: "/assessments" },
+  { icon: Truck, title: "Vehicles", path: "/vehicles" },
   { icon: Settings, title: "Settings", path: "/settings" },
 ]
 

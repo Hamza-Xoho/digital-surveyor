@@ -4,10 +4,12 @@ import json
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 
 from app.api.deps import CurrentUser, SessionDep
-from app.crud import create_assessment, get_assessment, list_assessments
+from app.core.rate_limit import check_assessment_rate_limit
+from app.crud import create_assessment, get_assessment, list_assessments, update_assessment_notes
 from app.errors import ExternalAPIError, InvalidPostcodeError, PostcodeNotFoundError
 from app.services.geocoding import geocode_postcode
 from app.services.os_features import fetch_area_features, fetch_line_features, get_features_wgs84
@@ -16,7 +18,7 @@ from app.services.pipeline import run_full_assessment
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
 
-@router.post("/quick")
+@router.post("/quick", dependencies=[Depends(check_assessment_rate_limit)])
 async def quick_assessment(
     postcode: str = Query(..., description="UK postcode e.g. BN1 1AB"),
     vehicle_classes: list[str] | None = Query(None, description="Filter by vehicle class names"),
@@ -37,7 +39,7 @@ async def quick_assessment(
     return result
 
 
-@router.post("/")
+@router.post("/", dependencies=[Depends(check_assessment_rate_limit)])
 async def create_and_persist_assessment(
     session: SessionDep,
     current_user: CurrentUser,
@@ -132,6 +134,7 @@ def list_user_assessments(
                 "overall_rating": a.overall_rating,
                 "latitude": a.latitude,
                 "longitude": a.longitude,
+                "notes": a.notes,
                 "created_at": a.created_at,
             }
             for a in items
@@ -159,6 +162,33 @@ def get_assessment_detail(
         "id": str(assessment.id),
         "postcode": assessment.postcode,
         "overall_rating": assessment.overall_rating,
+        "notes": assessment.notes,
         "created_at": assessment.created_at,
         "results": results,
+    }
+
+
+class NotesUpdate(BaseModel):
+    notes: str | None = None
+
+
+@router.patch("/{assessment_id}/notes")
+def update_notes(
+    assessment_id: uuid.UUID,
+    body: NotesUpdate,
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> Any:
+    """Update notes on an assessment."""
+    assessment = update_assessment_notes(
+        session=session,
+        assessment_id=assessment_id,
+        owner_id=current_user.id,
+        notes=body.notes,
+    )
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    return {
+        "id": str(assessment.id),
+        "notes": assessment.notes,
     }

@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test"
 
-test("Dashboard shows welcome message with user email", async ({ page }) => {
+test("Dashboard shows welcome message", async ({ page }) => {
   await page.goto("/")
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Hi,")
+  await expect(page.getByRole("heading", { level: 1, name: /Welcome back/ })).toBeVisible()
   await expect(
-    page.getByText("Welcome back, nice to see you again!"),
+    page.getByText("Assess vehicle access for UK properties"),
   ).toBeVisible()
 })
 
@@ -15,48 +15,37 @@ test("Dashboard shows user greeting with email", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
 })
 
-test("Dashboard shows Run Assessment card", async ({ page }) => {
+test("Dashboard shows Quick Assessment card", async ({ page }) => {
   await page.goto("/")
 
-  await expect(page.getByText("Run Assessment")).toBeVisible()
+  await expect(page.getByText("Quick Assessment")).toBeVisible()
   await expect(
-    page.getByText("Check vehicle access for a UK postcode"),
+    page.getByText("Enter a UK postcode to check vehicle access"),
   ).toBeVisible()
 })
 
-test("Dashboard shows Account Settings card", async ({ page }) => {
+test("Dashboard shows Recent Assessments card", async ({ page }) => {
   await page.goto("/")
 
-  await expect(page.getByText("Account Settings")).toBeVisible()
+  await expect(page.getByText("Recent Assessments")).toBeVisible()
+})
+
+test("Dashboard Quick Assessment has postcode input", async ({
+  page,
+}) => {
+  await page.goto("/")
+
   await expect(
-    page.getByText("Manage your profile and preferences"),
+    page.getByRole("textbox", { name: "e.g. BN1 1AB" }),
   ).toBeVisible()
 })
 
-test("Dashboard Run Assessment card links to assessments page", async ({
+test("Dashboard shows Data Sources card for superuser", async ({
   page,
 }) => {
   await page.goto("/")
 
-  await page.getByText("Run Assessment").click()
-  await page.waitForURL("/assessments")
-})
-
-test("Dashboard Account Settings card links to settings page", async ({
-  page,
-}) => {
-  await page.goto("/")
-
-  await page.getByText("Account Settings").click()
-  await page.waitForURL("/settings")
-})
-
-test("Dashboard shows API Configuration card for superuser", async ({
-  page,
-}) => {
-  await page.goto("/")
-
-  await expect(page.getByText("API Configuration")).toBeVisible()
+  await expect(page.getByText("Data Sources")).toBeVisible()
   await expect(page.getByText("Ordnance Survey")).toBeVisible()
 })
 
@@ -84,10 +73,10 @@ test("Sidebar shows Digital Surveyor logo", async ({ page }) => {
   ).toBeVisible()
 })
 
-test("Footer is visible with copyright text", async ({ page }) => {
+test("Footer is visible with version text", async ({ page }) => {
   await page.goto("/")
 
-  await expect(page.getByText("Digital Surveyor ©")).toBeVisible()
+  await expect(page.getByText("Digital Surveyor v")).toBeVisible()
 })
 
 test("Theme toggle button is visible", async ({ page }) => {
@@ -102,4 +91,16 @@ test("User menu button is visible in sidebar", async ({ page }) => {
   await page.goto("/")
 
   await expect(page.getByTestId("user-menu")).toBeVisible()
+})
+
+test("Dashboard stats show Total Assessments", async ({ page }) => {
+  await page.goto("/")
+
+  await expect(page.getByText("Total Assessments")).toBeVisible()
+})
+
+test("Dashboard stats show Vehicle Profiles", async ({ page }) => {
+  await page.goto("/")
+
+  await expect(page.getByText("Vehicle Profiles")).toBeVisible()
 })

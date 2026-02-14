@@ -1,25 +1,9 @@
-import { FaGithub } from "react-icons/fa"
-
 export function Footer() {
-  const currentYear = new Date().getFullYear()
-
   return (
-    <footer className="border-t py-4 px-6">
-      <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <p className="text-muted-foreground text-sm">
-          Digital Surveyor &copy; {currentYear}
-        </p>
-        <div className="flex items-center gap-4">
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <FaGithub className="h-5 w-5" />
-          </a>
-        </div>
+    <footer className="border-t py-3 px-6">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Digital Surveyor v0.2.0</span>
+        <span>UK Vehicle Access Assessment</span>
       </div>
     </footer>
   )
