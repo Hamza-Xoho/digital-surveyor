@@ -23,7 +23,7 @@ export default function SavedLocations({ onSelectPostcode, currentPostcode }: Pr
   const [postcode, setPostcode] = useState("")
 
   const handleSave = () => {
-    if (!label.trim() || !postcode.trim()) return
+    if (!label.trim() || !postcode.trim() || createMutation.isPending) return
     createMutation.mutate(
       { label: label.trim(), postcode: postcode.trim().toUpperCase() },
       {
@@ -123,6 +123,7 @@ export default function SavedLocations({ onSelectPostcode, currentPostcode }: Pr
                   variant="ghost"
                   size="sm"
                   className="h-6 w-6 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                  aria-label={`Delete ${loc.label}`}
                   onClick={() => deleteMutation.mutate(loc.id)}
                 >
                   <Trash2 className="size-3" />

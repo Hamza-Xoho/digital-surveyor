@@ -22,9 +22,11 @@ export const getInitials = (name: string): string => {
  */
 export function handleError(
   this: (message: string) => void,
-  error: ApiError,
+  error: ApiError | Error,
 ): void {
   const detail =
-    (error.body as { detail?: string })?.detail ?? error.message ?? "Unknown error"
+    "body" in error
+      ? ((error.body as { detail?: string })?.detail ?? error.message ?? "Unknown error")
+      : (error.message ?? "Unknown error")
   this(detail)
 }

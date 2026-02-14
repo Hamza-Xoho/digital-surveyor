@@ -1,8 +1,17 @@
+import { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
 import { Truck, Trash2, Ruler, Weight, RotateCcw } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   useVehicleProfiles,
   useCustomVehicles,
@@ -53,6 +62,7 @@ function VehicleProfileCard({
               variant="ghost"
               size="sm"
               className="text-muted-foreground hover:text-destructive"
+              aria-label={`Delete ${vehicle.name}`}
               onClick={onDelete}
             >
               <Trash2 className="size-4" />
@@ -96,8 +106,16 @@ function VehiclesPage() {
   const { data: custom = [], isLoading: loadingCustom } = useCustomVehicles()
   const createMutation = useCreateVehicle()
   const deleteMutation = useDeleteVehicle()
+  const [deleteTarget, setDeleteTarget] = useState<VehicleProfile | null>(null)
 
   const isLoading = loadingDefaults || loadingCustom
+
+  const handleConfirmDelete = () => {
+    if (deleteTarget?.id) {
+      deleteMutation.mutate(deleteTarget.id)
+    }
+    setDeleteTarget(null)
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -135,7 +153,7 @@ function VehiclesPage() {
                   key={v.id}
                   vehicle={v}
                   isCustom
-                  onDelete={() => v.id && deleteMutation.mutate(v.id)}
+                  onDelete={() => setDeleteTarget(v)}
                 />
               ))}
             </div>
@@ -164,6 +182,24 @@ function VehiclesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Delete Vehicle</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &ldquo;{deleteTarget?.name}&rdquo;? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

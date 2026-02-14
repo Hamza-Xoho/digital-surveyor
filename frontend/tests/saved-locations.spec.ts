@@ -46,17 +46,15 @@ test.describe("Saved Locations on Assessment Page", () => {
     await page.getByPlaceholder("Postcode (e.g. BN1 1AB)").fill("SW1A 1AA")
     await page.getByRole("button", { name: "Save" }).click()
 
-    // Location should appear in the list
-    const savedBtn = page.getByRole("button", { name: new RegExp(uniqueLabel) })
+    // Location should appear in the list — use exact name to avoid matching the Delete button
+    const savedBtn = page.getByRole("button", { name: `${uniqueLabel} SW1A 1AA` })
     await expect(savedBtn).toBeVisible({ timeout: 5000 })
-    await expect(savedBtn.getByText("SW1A 1AA")).toBeVisible()
 
-    // Delete it — the trash button is the next sibling of the location button
-    const deleteBtn = savedBtn.locator("xpath=following-sibling::button")
-    await deleteBtn.click()
+    // Delete it — use the aria-label on the delete button
+    await page.getByRole("button", { name: `Delete ${uniqueLabel}` }).click()
 
     // Location should be removed
-    await expect(page.getByText(uniqueLabel)).not.toBeVisible({ timeout: 5000 })
+    await expect(savedBtn).not.toBeVisible({ timeout: 5000 })
   })
 
   test("Save Current button appears after running assessment", async ({ page }) => {

@@ -1,7 +1,5 @@
 """Settings endpoints — manage API keys and system configuration (superuser only)."""
 
-from typing import Any
-
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
@@ -39,12 +37,8 @@ class ApiKeyUpdate(BaseModel):
     mapillary_token: str | None = None
 
 
-@router.get("/api-keys", response_model=ApiKeyStatus)
-def get_api_key_status() -> Any:
-    """
-    Get the current status of configured API keys.
-    Keys are masked for security — only first/last 4 chars shown.
-    """
+def _build_api_key_status() -> ApiKeyStatus:
+    """Build current API key status from settings."""
     return ApiKeyStatus(
         os_api_key=_mask_key(settings.OS_API_KEY),
         here_api_key=_mask_key(settings.HERE_API_KEY),
@@ -55,8 +49,17 @@ def get_api_key_status() -> Any:
     )
 
 
+@router.get("/api-keys", response_model=ApiKeyStatus)
+def get_api_key_status() -> ApiKeyStatus:
+    """
+    Get the current status of configured API keys.
+    Keys are masked for security — only first/last 4 chars shown.
+    """
+    return _build_api_key_status()
+
+
 @router.put("/api-keys", response_model=ApiKeyStatus)
-def update_api_keys(keys: ApiKeyUpdate) -> Any:
+def update_api_keys(keys: ApiKeyUpdate) -> ApiKeyStatus:
     """
     Update API keys at runtime. Only non-null fields are updated.
     Changes persist in memory for the current server process.
@@ -69,11 +72,4 @@ def update_api_keys(keys: ApiKeyUpdate) -> Any:
     if keys.mapillary_token is not None:
         settings.MAPILLARY_TOKEN = keys.mapillary_token
 
-    return ApiKeyStatus(
-        os_api_key=_mask_key(settings.OS_API_KEY),
-        here_api_key=_mask_key(settings.HERE_API_KEY),
-        mapillary_token=_mask_key(settings.MAPILLARY_TOKEN),
-        os_configured=bool(settings.OS_API_KEY),
-        here_configured=bool(settings.HERE_API_KEY),
-        mapillary_configured=bool(settings.MAPILLARY_TOKEN),
-    )
+    return _build_api_key_status()

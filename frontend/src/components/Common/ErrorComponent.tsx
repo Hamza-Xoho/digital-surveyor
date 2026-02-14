@@ -1,7 +1,11 @@
 import { Link } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 
-const ErrorComponent = () => {
+interface ErrorComponentProps {
+  error?: Error
+}
+
+const ErrorComponent = ({ error }: ErrorComponentProps) => {
   return (
     <div
       className="flex min-h-screen items-center justify-center flex-col p-4"
@@ -17,7 +21,7 @@ const ErrorComponent = () => {
       </div>
 
       <p className="text-lg text-muted-foreground mb-4 text-center z-10">
-        Something went wrong. Please try again.
+        {error?.message || "Something went wrong. Please try again."}
       </p>
       <Link to="/">
         <Button>Go Home</Button>

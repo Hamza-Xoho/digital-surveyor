@@ -33,14 +33,20 @@ const OSM_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 // leftover child nodes (tiles, controls) from the previous mount so only a
 // single live map is visible.
 // ---------------------------------------------------------------------------
-const origInitContainer = (L.Map.prototype as any)._initContainer
-;(L.Map.prototype as any)._initContainer = function (id: any) {
-  const container =
+type LeafletInternal = {
+  _initContainer: (id: string | HTMLElement) => void
+}
+type LeafletStampedElement = HTMLElement & { _leaflet_id?: number }
+
+const origInitContainer = (L.Map.prototype as unknown as LeafletInternal)._initContainer
+;(L.Map.prototype as unknown as LeafletInternal)._initContainer = function (
+  this: LeafletInternal,
+  id: string | HTMLElement,
+) {
+  const container: LeafletStampedElement | null =
     typeof id === "string" ? document.getElementById(id) : id
-  if (container && (container as any)._leaflet_id) {
-    // Stale Leaflet stamp — strip it and wipe leftover DOM children so
-    // the new map instance starts with a clean container.
-    delete (container as any)._leaflet_id
+  if (container && container._leaflet_id) {
+    delete container._leaflet_id
     while (container.firstChild) {
       container.removeChild(container.firstChild)
     }

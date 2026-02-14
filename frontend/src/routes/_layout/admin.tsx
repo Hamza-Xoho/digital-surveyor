@@ -24,8 +24,8 @@ export const Route = createFileRoute("/_layout/admin")({
       if (!user.is_superuser) {
         throw redirect({ to: "/" })
       }
-    } catch (err: any) {
-      if (err?.to) throw err // re-throw TanStack redirect
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "to" in err) throw err // re-throw TanStack redirect
       throw redirect({ to: "/login" })
     }
   },

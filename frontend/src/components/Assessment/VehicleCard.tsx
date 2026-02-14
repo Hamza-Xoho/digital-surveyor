@@ -30,6 +30,7 @@ export default function VehicleCard({ assessment, isSelected, onSelect }: Props)
     <Card
       className={`cursor-pointer transition-all ${isSelected ? `ring-2 ${config.ring}` : "hover:border-foreground/20"}`}
       onClick={onSelect}
+      data-testid={`vehicle-card-${assessment.vehicle_class}`}
     >
       <CardContent className="p-3">
         <div className="flex items-center gap-3">
@@ -47,6 +48,7 @@ export default function VehicleCard({ assessment, isSelected, onSelect }: Props)
             variant="ghost"
             size="icon"
             className="size-7"
+            aria-label={expanded ? "Collapse details" : "Expand details"}
             onClick={(e) => { e.stopPropagation(); setExpanded(!expanded) }}
           >
             {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
@@ -55,7 +57,7 @@ export default function VehicleCard({ assessment, isSelected, onSelect }: Props)
 
         {/* Confidence bar */}
         <div className="mt-2 flex items-center gap-2">
-          <Progress value={assessment.confidence * 100} className="h-1.5 flex-1" />
+          <Progress value={assessment.confidence * 100} className="h-1.5 flex-1" aria-label="Confidence" />
           <span className="text-xs text-muted-foreground">
             {Math.round(assessment.confidence * 100)}%
           </span>

@@ -1,11 +1,12 @@
 """Assessment endpoints — run new assessments and retrieve history."""
 
 import json
+import logging
 import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.rate_limit import check_assessment_rate_limit
@@ -14,6 +15,8 @@ from app.errors import ExternalAPIError, InvalidPostcodeError, PostcodeNotFoundE
 from app.services.geocoding import geocode_postcode
 from app.services.os_features import fetch_area_features, fetch_line_features, get_features_wgs84
 from app.services.pipeline import run_full_assessment
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
@@ -33,8 +36,9 @@ async def quick_assessment(
         raise HTTPException(status_code=400, detail=str(e))
     except ExternalAPIError as e:
         raise HTTPException(status_code=502, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Assessment pipeline error: {e}")
+    except Exception:
+        logger.exception("Assessment pipeline error for postcode %s", postcode)
+        raise HTTPException(status_code=500, detail="Assessment pipeline error")
 
     return result
 
@@ -55,8 +59,9 @@ async def create_and_persist_assessment(
         raise HTTPException(status_code=400, detail=str(e))
     except ExternalAPIError as e:
         raise HTTPException(status_code=502, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Assessment pipeline error: {e}")
+    except Exception:
+        logger.exception("Assessment pipeline error for postcode %s", postcode)
+        raise HTTPException(status_code=500, detail="Assessment pipeline error")
 
     assessment = create_assessment(
         session=session,
@@ -169,7 +174,7 @@ def get_assessment_detail(
 
 
 class NotesUpdate(BaseModel):
-    notes: str | None = None
+    notes: str | None = Field(default=None, max_length=2000)
 
 
 @router.patch("/{assessment_id}/notes")

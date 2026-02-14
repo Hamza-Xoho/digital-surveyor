@@ -26,8 +26,9 @@ const useAuth = () => {
     queryFn: async () => {
       try {
         return await UsersService.readUserMe()
-      } catch (err: any) {
-        if (err?.status === 401 || err?.status === 403) {
+      } catch (err: unknown) {
+        const status = (err as { status?: number })?.status
+        if (status === 401 || status === 403) {
           clearAuthState()
           return null
         }
@@ -44,7 +45,9 @@ const useAuth = () => {
     onSuccess: () => {
       navigate({ to: "/login" })
     },
-    onError: handleError.bind(showErrorToast),
+    onError: (error) => {
+      handleError.call(showErrorToast, error)
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] })
     },
@@ -62,7 +65,9 @@ const useAuth = () => {
     onSuccess: () => {
       navigate({ to: "/" })
     },
-    onError: handleError.bind(showErrorToast),
+    onError: (error) => {
+      handleError.call(showErrorToast, error)
+    },
   })
 
   const logout = () => {

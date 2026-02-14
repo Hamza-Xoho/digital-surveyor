@@ -6,8 +6,8 @@ test.describe("Vehicles Page Layout", () => {
 
     await expect(page.getByRole("heading", { name: "Vehicle Profiles" })).toBeVisible()
     await expect(page.getByText("Manage vehicle profiles used for access assessments")).toBeVisible()
-    await expect(page.getByText("Custom Vehicles")).toBeVisible()
-    await expect(page.getByText("Default Vehicles")).toBeVisible()
+    await expect(page.getByText("Custom Vehicles", { exact: true })).toBeVisible()
+    await expect(page.getByText("Default Vehicles", { exact: true })).toBeVisible()
   })
 
   test("Default vehicles are displayed", async ({ page }) => {
@@ -65,12 +65,16 @@ test.describe("Custom Vehicle CRUD", () => {
   test("Create and delete a custom vehicle", async ({ page }) => {
     await page.goto("/vehicles")
 
+    // Use a unique name to avoid collisions with leftover data from previous runs
+    const uniqueName = `E2E Van ${Date.now()}`
+    const uniqueClass = `e2e_van_${Date.now()}`
+
     // Open form
     await page.getByRole("button", { name: "Add Custom Vehicle" }).click()
 
     // Fill in the form
-    await page.getByLabel("Vehicle Name").fill("E2E Test Van")
-    await page.getByLabel("Class ID").fill("e2e_test_van")
+    await page.getByLabel("Vehicle Name").fill(uniqueName)
+    await page.getByLabel("Class ID").fill(uniqueClass)
     await page.getByLabel("Width (m)", { exact: true }).fill("2.0")
     await page.getByLabel("Length (m)", { exact: true }).fill("6.0")
     await page.getByLabel("Height (m)", { exact: true }).fill("2.8")
@@ -80,16 +84,18 @@ test.describe("Custom Vehicle CRUD", () => {
     await page.getByRole("button", { name: "Create Vehicle" }).click()
 
     // Custom vehicle should appear in the list with Custom badge
-    await expect(page.getByText("E2E Test Van")).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(uniqueName)).toBeVisible({ timeout: 5000 })
     await expect(page.getByText("Custom").first()).toBeVisible()
 
-    // Now delete it — find the row containing our vehicle name, then the delete button
-    // The card structure is: <div flex justify-between> <div> ..name.. </div> <button> trash </button> </div>
-    const vehicleRow = page.locator("div.flex.items-start").filter({ hasText: "E2E Test Van" })
-    await vehicleRow.locator("button").click()
+    // Now delete it — click the trash button (aria-label) which opens a confirmation dialog
+    await page.getByRole("button", { name: `Delete ${uniqueName}` }).click()
+
+    // Confirm the delete in the dialog
+    await expect(page.getByRole("heading", { name: "Delete Vehicle" })).toBeVisible()
+    await page.getByRole("button", { name: "Delete" }).click()
 
     // Vehicle should be removed
-    await expect(page.getByText("E2E Test Van")).not.toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(uniqueName)).not.toBeVisible({ timeout: 5000 })
   })
 })
 

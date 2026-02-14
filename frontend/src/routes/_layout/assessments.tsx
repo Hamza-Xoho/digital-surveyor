@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { createFileRoute, useSearch } from "@tanstack/react-router"
 import { Loader2, MapPin } from "lucide-react"
 import MapContainer from "@/components/Map/MapContainer"
@@ -22,36 +22,37 @@ function AssessmentsPage() {
   const [result, setResult] = useState<AssessmentResult | null>(null)
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null)
   const mutation = useRunAssessment()
+  const hasAutoRun = useRef(false)
 
-  const handleSearch = (postcode: string) => {
+  const handleSearch = useCallback((postcode: string) => {
     mutation.mutate(postcode, {
       onSuccess: (data) => {
         setResult(data)
         setSelectedVehicle(null)
       },
     })
-  }
+  }, [mutation])
 
-  // Auto-run assessment when navigated with ?postcode= param
+  // Auto-run assessment when navigated with ?postcode= param (once only)
   useEffect(() => {
-    if (searchPostcode && !result && !mutation.isPending) {
+    if (searchPostcode && !hasAutoRun.current && !mutation.isPending) {
+      hasAutoRun.current = true
       handleSearch(searchPostcode)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchPostcode])
+  }, [searchPostcode, mutation.isPending, handleSearch])
 
   return (
     <div className="-m-6 md:-m-8 flex h-[calc(100vh-4rem)]">
-      {/* Map — 60% width */}
-      <div className="relative w-[60%]">
+      {/* Map — responsive split */}
+      <div className="relative hidden md:block md:w-[60%]">
         <MapContainer
           assessment={result}
           selectedVehicle={selectedVehicle}
         />
       </div>
 
-      {/* Panel — 40% width */}
-      <div className="w-[40%] overflow-y-auto border-l bg-background p-5">
+      {/* Panel — responsive width */}
+      <div className="w-full md:w-[40%] overflow-y-auto border-l bg-background p-5">
         <PostcodeSearch
           onSubmit={handleSearch}
           isLoading={mutation.isPending}
@@ -72,7 +73,7 @@ function AssessmentsPage() {
           </div>
         )}
 
-        {!mutation.isPending && !result && (
+        {!mutation.isPending && !result && !mutation.error && (
           <div className="mt-12 flex flex-col items-center gap-3 text-muted-foreground">
             <MapPin className="size-12 opacity-30" />
             <div className="text-center">

@@ -21,12 +21,10 @@ function Dashboard() {
   const { data: assessments } = useAssessmentHistory()
   const { data: vehicles } = useVehicleProfiles()
 
-  const assessmentCount = Array.isArray(assessments) ? assessments.length : 0
+  const assessmentCount = assessments?.length ?? 0
   const vehicleCount = vehicles?.length ?? 0
 
-  const greenCount = Array.isArray(assessments)
-    ? assessments.filter((a: any) => a.overall_rating === "GREEN").length
-    : 0
+  const greenCount = assessments?.filter((a) => a.overall_rating === "GREEN").length ?? 0
   const passRate =
     assessmentCount > 0 ? Math.round((greenCount / assessmentCount) * 100) : 0
 

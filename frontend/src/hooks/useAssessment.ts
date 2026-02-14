@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type { FeatureCollection, Feature } from "geojson"
 import { OpenAPI } from "@/client/core/OpenAPI"
-import { getAccessToken } from "@/utils/token"
+import { getAccessToken, clearAuthState } from "@/utils/token"
 
 export interface VehicleCheck {
   name: string
@@ -30,7 +30,7 @@ export interface WidthAnalysis {
 export interface GradientAnalysis {
   max_gradient_pct: number
   mean_gradient_pct: number
-  steep_segments: Array<{ start_m: number; end_m: number; max_gradient_pct: number }>
+  steep_segments: Array<{ start_m: number; end_m: number; gradient_pct: number }>
 }
 
 export interface DataSourceInfo {
@@ -64,17 +64,49 @@ export interface AssessmentResult {
 
 async function runAssessment(postcode: string): Promise<AssessmentResult> {
   const token = getAccessToken()
-  // Use persisted endpoint when authenticated (returns id for notes)
-  const endpoint = token
-    ? `${OpenAPI.BASE}/api/v1/assessments/?postcode=${encodeURIComponent(postcode)}`
-    : `${OpenAPI.BASE}/api/v1/assessments/quick?postcode=${encodeURIComponent(postcode)}`
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
+  const encodedPostcode = encodeURIComponent(postcode)
+
+  // Try authenticated endpoint first if we have a token
+  if (token) {
+    const res = await fetch(
+      `${OpenAPI.BASE}/api/v1/assessments/?postcode=${encodedPostcode}`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    )
+
+    if (res.ok) return res.json()
+
+    // Stale/invalid token — clear it and fall back to unauthenticated endpoint
+    if (res.status === 401 || res.status === 403 || res.status === 404) {
+      clearAuthState()
+    } else {
+      let detail = "Assessment failed"
+      try {
+        const err = await res.json()
+        detail = err.detail || detail
+      } catch {
+        detail = `Assessment failed (${res.status})`
+      }
+      throw new Error(detail)
+    }
+  }
+
+  // Unauthenticated fallback (/quick endpoint)
+  const res = await fetch(
+    `${OpenAPI.BASE}/api/v1/assessments/quick?postcode=${encodedPostcode}`,
+    { method: "POST" },
+  )
   if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.detail || "Assessment failed")
+    let detail = "Assessment failed"
+    try {
+      const err = await res.json()
+      detail = err.detail || detail
+    } catch {
+      detail = `Assessment failed (${res.status})`
+    }
+    throw new Error(detail)
   }
   return res.json()
 }
@@ -89,7 +121,16 @@ async function updateNotes({ assessmentId, notes }: { assessmentId: string; note
     },
     body: JSON.stringify({ notes }),
   })
-  if (!res.ok) throw new Error("Failed to update notes")
+  if (!res.ok) {
+    let detail = "Failed to update notes"
+    try {
+      const err = await res.json()
+      detail = err.detail || detail
+    } catch {
+      detail = `Failed to update notes (${res.status})`
+    }
+    throw new Error(detail)
+  }
 }
 
 export function useRunAssessment() {
@@ -112,16 +153,36 @@ export function useUpdateAssessmentNotes() {
   })
 }
 
+export interface AssessmentHistoryItem {
+  id: string
+  postcode: string
+  overall_rating: "GREEN" | "AMBER" | "RED"
+  latitude: number
+  longitude: number
+  notes: string | null
+  created_at: string
+}
+
+interface AssessmentHistoryResponse {
+  data: AssessmentHistoryItem[]
+  count: number
+}
+
 export function useAssessmentHistory() {
-  return useQuery({
+  return useQuery<AssessmentHistoryItem[]>({
     queryKey: ["assessments"],
     queryFn: async () => {
       const token = getAccessToken()
+      if (!token) return []
       const res = await fetch(`${OpenAPI.BASE}/api/v1/assessments/`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: { Authorization: `Bearer ${token}` },
       })
-      if (!res.ok) throw new Error("Failed to fetch assessment history")
-      return res.json()
+      if (!res.ok) {
+        if (res.status === 401) return []
+        throw new Error("Failed to fetch assessment history")
+      }
+      const json: AssessmentHistoryResponse = await res.json()
+      return json.data ?? []
     },
   })
 }

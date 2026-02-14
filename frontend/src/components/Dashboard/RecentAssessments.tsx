@@ -3,18 +3,20 @@ import { Clock, MapPin, ArrowRight } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { useAssessmentHistory } from "@/hooks/useAssessment"
+import { useAssessmentHistory, type AssessmentHistoryItem } from "@/hooks/useAssessment"
 
-const ratingColors = {
+type Rating = "GREEN" | "AMBER" | "RED"
+
+const ratingColors: Record<Rating, string> = {
   GREEN: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
   AMBER: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
   RED: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-} as const
+}
 
 export default function RecentAssessments() {
   const { data, isLoading } = useAssessmentHistory()
 
-  const assessments = Array.isArray(data) ? data.slice(0, 5) : []
+  const assessments = data?.slice(0, 5) ?? []
 
   return (
     <Card>
@@ -50,9 +52,9 @@ export default function RecentAssessments() {
           </div>
         ) : (
           <div className="space-y-2">
-            {assessments.map((a: any, i: number) => (
+            {assessments.map((a: AssessmentHistoryItem) => (
               <div
-                key={a.id || i}
+                key={a.id}
                 className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
               >
                 <div className="flex items-center gap-3">
@@ -68,7 +70,7 @@ export default function RecentAssessments() {
                 </div>
                 <Badge
                   variant="secondary"
-                  className={ratingColors[a.overall_rating as keyof typeof ratingColors] || ""}
+                  className={ratingColors[a.overall_rating] || ""}
                 >
                   {a.overall_rating}
                 </Badge>

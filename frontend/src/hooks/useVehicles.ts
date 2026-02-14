@@ -32,7 +32,8 @@ export function useVehicleProfiles() {
     queryFn: async () => {
       const res = await fetch(`${OpenAPI.BASE}/api/v1/vehicles/`)
       if (!res.ok) throw new Error("Failed to fetch vehicles")
-      return res.json()
+      const json = await res.json()
+      return json as VehicleProfile[]
     },
   })
 }
@@ -46,7 +47,8 @@ export function useCustomVehicles() {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (!res.ok) throw new Error("Failed to fetch custom vehicles")
-      return res.json()
+      const json = await res.json()
+      return json as VehicleProfile[]
     },
   })
 }
@@ -65,10 +67,16 @@ export function useCreateVehicle() {
         body: JSON.stringify(data),
       })
       if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.detail || "Failed to create vehicle")
+        let detail = "Failed to create vehicle"
+        try {
+          const err = await res.json()
+          detail = err.detail || detail
+        } catch {
+          // non-JSON error response
+        }
+        throw new Error(detail)
       }
-      return res.json()
+      return res.json() as Promise<VehicleProfile>
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["custom-vehicles"] })

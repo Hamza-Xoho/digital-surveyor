@@ -36,7 +36,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarAppearance />
-        <User user={currentUser} />
+        {currentUser && <User user={currentUser} />}
       </SidebarFooter>
     </Sidebar>
   )
